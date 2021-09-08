@@ -1,17 +1,23 @@
 ## Services
+https://community.backbase.com/documentation/ServiceSDK/latest/http_service_to_service_communication
 - client-api: available to web clients (via gateway/api)
- - specifies the external requests received from users or external clients through Edge service
- - require user JWT and apply access control
+  - specifies the external requests received from users or external clients through Edge service
+  - require user JWT and apply access control
+
 - service-api: available within services
- - specifies machine-to-machine requests received from trusted internal systems
- - requests happen outside of the context of the user
- - raml-spec generates client to invoke
+  - specifies machine-to-machine requests received from trusted internal systems
+  - requests happen outside of the context of the user
+  - require service token
+
+- integration-api: available to external clients
+  - may require MTLS authentication
+  - doc says it doesn't require token, but it may require service token (? - NEED TO VERIFY)
 
 Rules:
 - if called from another service -> service-api
 - if called by clients through the Edge service -> client-api
 - if both -> service-api & client-api
-
+- if external client: integration-api
 
 - bootstrap.yml: sets the context for web
 
@@ -68,7 +74,7 @@ https://community.backbase.com/documentation/ServiceSDK/latest/http_service_to_s
 
 https://community.backbase.com/t/create-a-new-dbs-capability-part-4-test-the-capability/3691
 https://community.backbase.com/documentation/platform-services/latest/csrf_protection
-- XSRF-TOKEN: This token is used to guard against CSRF attacks and is constantly updated with the responses. 
+- XSRF-TOKEN: This token is used to guard against CSRF attacks and is constantly updated with the responses.
 All POST requests should include the X-XSRF-TOKEN header with a value identical to the one set in this cookie.
 
 - Authorization: This is an external JWT token that should be provided as a Bearer token in the HTTP Authorization header with all requests.
@@ -151,7 +157,7 @@ buildingblocks.security.csrf.enabled=false
           value: "false"
         - name: buildingblocks.security.csrf.enabled
           value: "false"
-        
+
 
 # maven-blade-plugin
 mvn com.backbase.oss:blade-maven-plugin:run
@@ -183,4 +189,3 @@ curl --location --request POST 'http://localhost:8181/fido-service/service-api/v
         "ios:bundle-id:com.backbase.start"
     ]
 }'
-
