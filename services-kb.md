@@ -84,6 +84,17 @@ Some APIs require user context to be present.
 This can be achieved using this API which creates the cookie USER_CONTEXT
 https://developer.backbase.com/api/specs/access-control/access-control-client-api/2.8.0/operations/UserContext/postUserContext
 
+Otherwise apis might return:
+{
+  "message": "Forbidden",
+  "errors": [
+    {
+      "message": "No User Context.",
+      "key": "context.E_MISSING_USER_CONTEXT"
+    }
+  ]
+}
+
 ## Postman
 - put on Tests for request or collection:
 pm.environment.set("XSRF-TOKEN", decodeURIComponent(pm.cookies.get("XSRF-TOKEN")))
