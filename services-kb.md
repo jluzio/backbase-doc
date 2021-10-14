@@ -79,6 +79,11 @@ All POST requests should include the X-XSRF-TOKEN header with a value identical 
 
 - Authorization: This is an external JWT token that should be provided as a Bearer token in the HTTP Authorization header with all requests.
 
+## USER_CONTEXT
+Some APIs require user context to be present.
+This can be achieved using this API which creates the cookie USER_CONTEXT
+https://developer.backbase.com/api/specs/access-control/access-control-client-api/2.8.0/operations/UserContext/postUserContext
+
 ## Postman
 - put on Tests for request or collection:
 pm.environment.set("XSRF-TOKEN", decodeURIComponent(pm.cookies.get("XSRF-TOKEN")))
