@@ -25,6 +25,8 @@ curl --location --request POST 'http://localhost:20003/v2/legalentities/batch/de
 }'
 
 - delete user in database
+note: maybe optional
+
 delete
 from EN_USER
 where external_id = '<username>';
