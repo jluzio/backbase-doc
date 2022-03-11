@@ -68,4 +68,3 @@ Permission:
 Context:
 - consists of the service agreement
 - combination of user and s.a. define the context where the permissions and privileges are set
-
