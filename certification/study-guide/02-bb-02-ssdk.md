@@ -80,3 +80,19 @@ Service SDK provides the following libraries:
 - service-sdk-starter-mapping: Supports MapStruct to manage Java Bean mapping.
 - service-sdk-starter-security: Configures Spring Security authentication using JSON Web Tokens. Provides optional scoped access,
 - service-sdk-web-client: Supports asynchronous calls to services through reactive processing.
+
+
+BE Essentials Notes
+-------------------
+
+## What is SSDK?
+Toolset to build Backbase Microservices
+Taking care of non-functional requirements
+Combination of best practices
+Standartized way of development
+
+## How does it accelerate development?
+Speed: archetypes & starters to quickly scaffold new services
+Consistency: Libraries for cross-cutting concerns, like auth or persistence
+Solidity: Build on proven technology, according to best practices, maintained in monthly releases
+Completeness: Essentials such as logging and resilience ootb
