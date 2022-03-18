@@ -1,4 +1,4 @@
-
+****
 > Create Legal Entity
 
     POST {{entitlementsUrl}}legalentity-integration-service/v2/legalentities

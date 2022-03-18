@@ -18,6 +18,122 @@ Ingestion / Integration strategies
       Programmatically developed integrations using the Backbase API specifications
 
 
+What is a Behaviour Extension?
+==============================
+
+* Implement custom logic in Process Flow
+* Implement custom validators
+* Operate before (pre) and after (post) standard operations
+* Modify data
+
+Ways to extend the behavior
+===========================
+
+* ExtensibleRouterBuilder: workflow with 2 or more steps
+* SimpleExtensibleRouterBuilder: simple workflow with 1 step
+
+
+ExtensibleRouteBuilder: Intercept a step in a route
+===================================================
+
+```java
+// 1
+@Component
+@Primary
+public class CustomExtendingRouteBuilder extends InitiatePaymentOrderRoute {
+
+    // 2
+    @Override
+    public void configure() throws Exception {
+
+        // 3
+        interceptSendToEndpoint(DIRECT_PAYMENT_VALIDATE)
+                .to(CustomEndpoints.VALIDATION_INTERCEPTOR);
+
+        super.configure();
+    }
+
+}
+```
+Notes: 
+* InitiatePaymentOrderRoute extends ExtensibleRouteBuilder
+* @Primary makes this route replace the existing one
+* Step URIs are on documentation for extensions and code
+
+```java
+// 1
+@Component
+public class CustomEndpoints {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomEndpoints.class);
+
+    public static final String VALIDATION_INTERCEPTOR = "direct:my.custom.payment.validate.interceptor";
+
+    // 2
+    @Consume(uri = VALIDATION_INTERCEPTOR)
+    public void extraValidation(ExtendedInternalRequest<CreatePaymentRequestDto> internalRequest) {
+        LOGGER.info("======== In custom endpoint for validation ========");
+        InitiatePaymentOrder initiatePaymentOrder = internalRequest.getData().getInitiatePaymentOrder();
+
+        // 3
+        if (initiatePaymentOrder.getInstructionPriority().equals(ValidatedPaymentOrder.InstructionPriority.HIGH)) {
+            throw new BadRequestException("This user is not allowed to make high priority payment requests");
+        }
+    }
+
+}
+```
+
+
+SimpleExtensibleRouterBuilder: Example with single step
+=======================================================
+
+```java
+package com.backbase.dbs.contactmanager.extension.simple;
+
+import com.backbase.buildingblocks.backend.communication.extension.annotations.BehaviorExtension;
+import com.backbase.buildingblocks.backend.communication.extension.annotations.PostHook;
+import com.backbase.dbs.contactmanager.contact.service.ContactListContainer;
+
+import org.springframework.core.annotation.Order;
+import org.springframework.util.CollectionUtils;
+
+import static com.backbase.dbs.contactmanager.contact.route.ContactRoute.CONTACT_LIST_ROUTE_ID;
+
+// 1
+@BehaviorExtension(
+    name = "list-contact-behavior-extension",
+    routeId = CONTACT_LIST_ROUTE_ID
+)
+@Order(1)
+public class ExampleBehaviorExtension {
+
+    // 2
+    @PostHook
+    public void postHookListContact(ContactListContainer contactListContainer) {
+        if(CollectionUtils.isEmpty(contactListContainer.getElements())){
+            return;
+        }
+
+        // 3
+        contactListContainer.getElements().forEach(contact -> {
+            contact.getAdditions().put("description",
+                    String.format(
+                            "Contact %s from category %s with phone number %s, email address %s and account in bank %s with IBAN %s",
+                            contact.getName(),
+                            contact.getCategory(),
+                            contact.getPhoneNumber(),
+                            contact.getEmailId(),
+                            contact.getAccounts().get(0).getBankName(),
+                            contact.getAccounts().get(0).getIban()
+                            )
+            );
+        });
+    }
+}
+```
+
+
 Extend the behavior of a service
 ================================
 
@@ -43,7 +159,27 @@ To create a behavior extension, you create a new service extension project in on
 
 *   **Use the service-extension-archetype to create a behavior extension project**
 
-        mvn archetype:generate -DarchetypeArtifactId=service-extension-archetype -DarchetypeGroupId=com.backbase.archetype -DserviceGroupId=com.backbase.dbs.<extensible_service> -DarchetypeVersion=<version>
+        mvn archetype:generate \
+          -DarchetypeArtifactId=service-extension-archetype \
+          -DarchetypeGroupId=com.backbase.archetype \
+          -DserviceGroupId=com.backbase.dbs.<extensible_service> \
+          -DarchetypeVersion=<version>
+
+        or in batch mode (with all params):
+
+        mvn archetype:generate -B \
+          -DarchetypeArtifactId=service-extension-archetype \
+          -DarchetypeGroupId=com.backbase.archetype \
+          -DarchetypeVersion=11.3.0 \
+          -DserviceGroupId=com.backbase.dbs.paymentorder \
+          -DserviceArtifactId=payment-order-service \
+          -DdbsVersion=2.19.3.2 \
+          -DgroupId=com.backbase.dbs.paymentorder \
+          -DartifactId=payment-order-service-extension \
+          -Dversion=1.0.0-SNAPSHOT \
+          -Dpackage=com.backbase.dbs.payment.extension \
+          -DrouteBuilderToExtend=com.backbase.dbs.payment.services.configuration.routes.InitiatePaymentOrderRoute
+
 
 *   **Manually create a Maven project with the following dependency**
 
@@ -346,6 +482,14 @@ Overriding the `configurePreHook` and `configurePostHook` methods of the origina
 
 
 
+What is a Data Extension?
+=========================
+
+* Extend the data model for an existing DBS capability
+* Add custom key-value pairs per API
+* No additional code required, just configuration
+
+
 Extend the data model for a service
 ===================================
 
@@ -502,3 +646,59 @@ Your model extension is ready to use. To test the functionality you have just im
               }
           ]
         }
+
+
+Essentials workshop example for contacts
+========================================
+
+```yaml
+---
+### Live profile
+spring:
+  profiles: live
+  datasource:
+    driver-class-name: ${spring.datasource.driver-class-name}
+    username: ${spring.datasource.username.contact-manager}
+    password: ${spring.datasource.password.contact-manager}
+    url: ${spring.datasource.url.contact-manager}
+
+backbase:
+  api:
+    extensions:
+      classes:
+        # 1 - Presentation spec
+        com.backbase.presentation.contact.rest.spec.v2.contacts.ContactsPostRequestBody: extra-info-data
+        com.backbase.presentation.contact.rest.spec.v2.contacts.ContactPutRequestBody: extra-info-data
+        # 2 - Persistence spec
+        com.backbase.dbs.party.persistence.spec.v2.parties.PartyDto: extra-info-data
+        com.backbase.dbs.party.persistence.spec.v2.parties.AccountInformation: extra-info-data
+        # 3 - Persistence entities
+        com.backbase.dbs.contactmanager.party.persistence.Party: extra-info-data
+        com.backbase.dbs.contactmanager.party.persistence.AccountInformation: extra-info-data
+      property-sets:
+        extra-info-data:
+          properties:
+          - property-name: socialProfileLink
+            type: string
+          - property-name: relationship
+            type: number
+          - property-name: jobTitle
+            type: number
+  audit:
+    enabled: false
+  security:
+    mtls:
+      enabled: false      
+```
+Notes:
+* // 1 PUT and POST
+  
+  To support your additional fields via the HTTP REST API you need to extend the ContactsPostRequestBody and ContactPutRequestBody class.
+
+* // 2 PartyDto and AccountInformation
+
+  To persist the data you need to make the additional fields available for the PartyDto and AccountInformation specification classes.
+
+* // 3 Party and AccountInformation
+
+  Finnally, the entity classes Party and AccountInformation classes needs to be updated with the additional data fields.
