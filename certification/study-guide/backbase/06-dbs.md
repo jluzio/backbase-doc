@@ -1,5 +1,11 @@
 # DBS
 
+## When to use DBS
+* When direct integration to the core systems is not possible - e.g. transaction search
+* When extra data needs to be stored that the core systems do not know about - e.g. contracts and avatars
+* When extra business logic is needed - e.g. entitlements
+* When the core systems is not always available - e.g. payments processing
+
 ## OOTB capabilities
 
 Access Control
@@ -13,138 +19,7 @@ Access to a resource means that the user is able to take one of the following ac
 *   Approve another user to access the resource
 
 Access Control in Backbase Platform governs and enforces the data a user has access to, the business functions he or she can perform on that data, and the additional constraints that apply when performing these business functions. For example, Access Control manages which accounts a user is allowed to view, and whether a certain user is allowed to approve a payment order.
-
-Access Control concepts
------------------------
-
-The concepts used for Access Control and the way Backbase uses them are:
-
-*   **Legal entity**: Is any personal or non-personal entity that is involved in a transaction or an arrangement with the bank. Both the bank and its customers are legal entities.    
-    A legal entity:    
-    *   Has one or more users that act on its behalf.      
-    *   Owns one or more arrangements.    
-
-    A legal entity hierarchy is a collection of parent-child relationships. For example, within the same deployment, this allows you to:
-    *   Set up a holding structure for a corporate customer of the bank.
-    *   Set up a structure within the bank to support country and regional offices.      
-
-*   **User**: A person who interacts with the bank and who uses Backbase applications on behalf of the legal entity they are representing.
-
-*   **Product**: A financial instrument such as a credit or debit card, a business current account or a 25-year fixed rate mortgage.
-
-*   **Arrangement**: A generic concept to represent an instance of any product held by a customer. For example, Bob’s 25-year fixed rate mortgage or his wife’s credit card.
-
-    Note: Products and arrangements are part of Products in DBS.
-
-*   **Service agreement**: A contract that includes one or more legal entities. A legal entity that is participating in a service agreement can allow a subset of its users to act through that service agreement and/or allow a subset of its arrangements to be accessed through the service agreement. Within each service agreement, permissions to perform specific tasks are granted to users, including access to arrangements shared by one or more legal entities (participating in that service agreement). As such, a service agreement is a way to give third party users specific access to your arrangements.
-
-    A special kind of service agreement is called the single service agreement. This service agreement has one legal entity participant and once configured, the participant cannot be changed. Important to know is that once the user is granted with administrative permissions (e.g. manage account groups), he or she has the power to execute the task in any service agreement lower in the hierarchy. For example, if the user of the bank is assigned with manage account groups permission in the single service agreement of the bank, the user can manage account groups in any service agreement lower in the hierarchy.
-
-    A service agreement may be restricted in time, by setting a time bound. Permissions granted to users in the time-restricted service agreement, are active and may be consumed, only while the time bound is valid.
-
-*   **Account group**: A grouping mechanism for arrangements. You define the account groups for service agreements. Account groups contain one or more arrangements owned by participating legal entities that share arrangements. The account group manages access to these arrangements. You can include one arrangement in multiple account groups.
-
-*   **Business function**: A task that a user performs for a specific capability. For example, Payments has the _Batch - ACH Credit_ business function to allow users to make multiple ACH credit transfers in batch. Each business function has one or more available privileges, eg. view, create, approve.
-
-*   **Privilege**: The action the user is allowed to perform for a specific business function.
-
-*   **Job role**: A set of business function privilege combinations or tasks such as SEPA CT payments, create, cancel, approve that are grouped together. You can further constrain business function privileges using Limits. For instance, one job role allows users to approve payment orders up to 100K and another one allows users to approve payment orders of 50K.
-
-    A job role may be restricted in time, by setting a time bound. Permissions granted to users in the time-restricted job role, are active and may be consumed, only while the time bound is valid.
-
-    Having these job roles consisting of business functions allows you to assign multiple tasks to a user in one go, see [available business function privilege combinations](https://community.backbase.com/documentation/DBS/2-19-3/entitlements_reference#bf_privileges_matrix).
-
-    Job roles are set for a service agreement.
-
-*   **Reference job role**: A special kind of job role that saves time in retail banking scenarios.
-
-    If you need to set up the same permissions for multiple users in different service agreements, for example for retail banking customers that each have their own service agreement, it saves time to create a reference job role in the single service agreement of the bank, which then is available by default to all the service agreements of your retail customers, if they are assigned to the same assignable permission set as the reference job role.
-
-    For more information, see [Manage and use reference job roles](https://community.backbase.com/documentation/DBS/2-19-3/entitlements_understand#reference_job_role).
-
-*   **Permission**: The moment you assign a job role to a user, that user has the permission to perform all business function privileges in that job role. Additionally, you may assign account groups to a user job role combination. By applying these job roles combined with account groups, you set up fine grained access control. Permissions are set for a service agreement.
-
-*   **Assignable permission set**: Banks may restrict the complete list of available combinations of business functions and privileges with an assignable permission set. This allows for fine-grained classification of permissions on service agreement level.
-
-
-Access Control workflow
------------------------
-
-When you onboard a new customer to your DBS installation:
-
-1.  You create the legal entity as a child of the specified parent. In most cases, this parent is a bank. However, you can also create a child entity for a customer legal entity. You do this to create a corporate entity structure such as a holding. Once a corporate entity structure is defined, users of the parent legal entity can perform typical administrator tasks like user management on child entities.
-
-2.  You create:
-
-    *   At least one user and associate it with the new legal entity. A user can only be associated with one legal entity.
-
-    *   The arrangements for the new customer and associate them with the legal entity or legal entities owning them.
-
-    *   A service agreement which is the container for the user permissions. Depending on the setup, you create either of the following:
-
-        *   Single service agreement for each legal entity (automatically on legal entity creation or manually after the legal entity creation). This way, you define permissions of users from the participant legal entity, to access its arrangements. Users assigned with a job role containing the manage service agreements business function are entitled to traverse and manage service agreements in hierarchy (only applicable for Entitlements related actions, such as manage job roles, manage permissions, manage account groups etc.) As we mentioned before, a single service agreement cannot be changed in terms of participation, meaning it is not possible to add or remove legal entities.
-
-        *   Create or update a service agreement (either a multi or a single service agreement). By setting up these service agreements you can allow a user of one legal entity to access the arrangements of another legal entity and perform specific tasks on those arrangements. This enables a company to access accounts of a third party in order to render a specific service. For example giving users of an accountancy company read access to your accounts.
-
-
-    *   Job roles and assign them to the created user(s), in the context of the created service agreement.
-
-    *   Account groups that contain the created arrangement(s) and assign them to one or more combinations of users and job roles in the context of the created service agreement.
-
-After you have set up user permissions, after a user is authenticated, he or she must select the context they will be working in. Context is the service agreement in, during this session. Users only have to select context if they have permissions set in more than one service agreement. When the context is determined the permissions of the user, including optional limits, are evaluated and enforced in the context of that service agreement. As a result; users can only access what they are allowed to use and perform only the business function privileges they have permissions for. Optionally these permissions are constrained by Limits.
-
-
-Classification of permissions
------------------------------
-
-The table above shows a list of all available combinations of business functions and privileges. Banks may not need the complete list and can restrict it. To restrict the list of business functions and privileges combinations, create assignable permission sets. This allows for fine-grained classification of permissions on service agreement level.
-
-Access Control has predefined assignable permission sets for regular users, administrators and for the US market. You can create custom assignable permissions sets that may have every possible combination of business functions and privileges.
-
-
-Manage and use reference job roles
-----------------------------------
-
-If you need to set up the same permissions for multiple users in different service agreements, for example for retail banking customers that each have their own service agreement, it saves time to create a reference job role in the single service agreement of the bank, which then is available by default to all the service agreements of your retail customers, if they are assigned to the same assignable permission set as the reference job role.
-
-You may create, update and delete reference job roles similar to normal job roles, with the following additional characteristics:
-*   Set up an assignable permission set to the reference job role to scope the possible combinations of business functions and privileges
-*   Create, update, or delete reference job roles only in the single service agreements of the bank
-
-A reference job role may be restricted in time, by setting a time bound. Permissions granted to users in the time-restricted reference job role, are active and may be consumed, only while the time bound is valid, additionally restricted by the time bound of the service agreement, where the reference job role is assigned to a user.
-
-
-Approval flow in Access Control
--------------------------------
-
-Access Control integrates with Approvals to provide more control over changes made to user permissions and to manage account groups and job roles flows. When enabled, the following actions are not immediately active, but go into a pending state until users with sufficient permissions have approved the action. The following actions and their related business function are part of the optional approval flow:
-
-*   User permissions assignment: _Assign Permissions_
-*   Account group management: _Manage Data Groups_
-*   Job role management: _Manage Function Groups_
-*   Service agreement management: _Manage Service Agreements_
-
-
-The required permissions for a user to approve and the number of users required to approve, depend on the assigned approval policy to the related business function. For example, the _Manage Data Groups_ business function is assigned with approval policy A + B. An administrator creates a new account group, and the action results in a pending account group, that requires two approvers: one approver of level A, and another one of level B. The users who want to approve this action are:
-
-*   Sarah with a job role of approval level A, containing _Manage Data Groups_ business functions with `view`, `approve` privileges
-
-*   Mary with a job role of approval level B, containing _Manage Data Groups_ business functions with `view`, `approve` privileges
-
-
-The created account group is approved and becomes active, after both Sarah and Mary approve the pending request.
-
-You cannot update the created account group while the current changes are pending. This is also true for the user’s permissions and job role changes.
-
-
-Audit
------
-
-By default Access Control uses [Audit](https://community.backbase.com/documentation/DBS/2.19.3/audit_understand) to publish and retrieve records about key business functions. Calls to the [access-control-client-api](https://docs.backbase.com/extranet/technical-docs/endpoints/2020.11/dbs.html#specs/access-control-client-api.html) create an audit record when the:
-*   Request is received
-*   Service responds
-*   Request fails
-
+> (continued on Entitlements)
 
 
 Account Statements
