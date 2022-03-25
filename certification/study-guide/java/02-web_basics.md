@@ -1,161 +1,76 @@
-# SQL
-SQL stands for Structured Query Language
-SQL lets you access and manipulate databases
-SQL became a standard of the American National Standards Institute (ANSI) in 1986, and of the International Organization for Standardization (ISO) in 1987
+# Servlets
+A servlet is a small Java program that runs within a Web server. Servlets receive and respond to requests from Web clients, usually across HTTP, the HyperText Transfer Protocol.
 
-Although SQL is an ANSI/ISO standard, there are different versions of the SQL language.
+To implement this interface, you can write a generic servlet that extends javax.servlet.GenericServlet or an HTTP servlet that extends **javax.servlet.http.HttpServlet**.
 
-SELECT - extracts data from a database
-UPDATE - updates data in a database
-DELETE - deletes data from a database
-INSERT INTO - inserts new data into a database
-CREATE DATABASE - creates a new database
-ALTER DATABASE - modifies a database
-CREATE TABLE - creates a new table
-ALTER TABLE - modifies a table
-DROP TABLE - deletes a table
-CREATE INDEX - creates an index (search key)
-DROP INDEX - deletes an index
+This interface defines methods to initialize a servlet, to service requests, and to remove a servlet from the server. These are known as life-cycle methods and are called in the following sequence:
+  - The servlet is constructed, then initialized with the init method.
+  - Any calls from clients to the service method are handled.
+  - The servlet is taken out of service, then destroyed with the destroy method, then garbage collected and finalized.
 
-## Examples
+In addition to the life-cycle methods, this interface provides the getServletConfig method, which the servlet can use to get any startup information, and the getServletInfo method, which allows the servlet to return basic information about itself, such as author, version, and copyright.
 
-SELECT column1, column2, ...
-FROM table_name;
+- HttpServlet
+Provides an abstract class to be subclassed to create an HTTP servlet suitable for a Web site. A subclass of HttpServlet must override at least one method, usually one of these:
+  - doGet, if the servlet supports HTTP GET requests
+  - doPost, for HTTP POST requests
+  - doPut, for HTTP PUT requests
+  - doDelete, for HTTP DELETE requests
+  - init and destroy, to manage resources that are held for the life of the servlet
+  - getServletInfo, which the servlet uses to provide information about itself
 
-SELECT DISTINCT column1, column2, ...
-FROM table_name;
+There's almost no reason to override the service method. service handles standard HTTP requests by dispatching them to the handler methods for each HTTP request type (the doXXX methods listed above).
 
-SELECT column1, column2, ...
-FROM table_name
-WHERE condition;
+Likewise, there's almost no reason to override the doOptions and doTrace methods.
 
-SELECT column1, column2, ...
-FROM table_name
-WHERE condition1 AND condition2 AND condition3 ...;
-SELECT column1, column2, ...
-FROM table_name
-WHERE condition1 OR condition2 OR condition3 ...;
-SELECT column1, column2, ...
-FROM table_name
-WHERE NOT condition;
+Servlets typically run on multithreaded servers, so be aware that a servlet must handle concurrent requests and be careful to synchronize access to shared resources. Shared resources include in-memory data such as instance or class variables and external objects such as files, database connections, and network connections. See the Java Tutorial on Multithreaded Programming for more information on handling multiple threads in a Java program.
 
-SELECT column1, column2, ...
-FROM table_name
-ORDER BY column1, column2, ... ASC|DESC;
+```java
+@WebServlet(name = "FormServlet", urlPatterns = "/calculateServlet")
+public class FormServlet extends HttpServlet {
 
-INSERT INTO table_name (column1, column2, column3, ...)
-VALUES (value1, value2, value3, ...);
+    @Override
+    protected void doPost(HttpServletRequest request, 
+      HttpServletResponse response)
+      throws ServletException, IOException {
 
-SELECT column_names
-FROM table_name
-WHERE column_name IS NULL;
-SELECT column_names
-FROM table_name
-WHERE column_name IS NOT NULL;
+        String height = request.getParameter("height");
+        String weight = request.getParameter("weight");
 
-UPDATE table_name
-SET column1 = value1, column2 = value2, ...
-WHERE condition;
+        try {
+            double bmi = calculateBMI(
+              Double.parseDouble(weight), 
+              Double.parseDouble(height));
+            
+            request.setAttribute("bmi", bmi);
+            response.setHeader("Test", "Success");
+            response.setHeader("BMI", String.valueOf(bmi));
 
-DELETE FROM table_name WHERE condition;
+            RequestDispatcher dispatcher 
+              = request.getRequestDispatcher("index.jsp");
+            dispatcher.forward(request, response);
+        } catch (Exception e) {
+            response.sendRedirect("index.jsp");
+        }
+    }
 
-SELECT TOP number|percent column_name(s)
-FROM table_name
-WHERE condition;
+    private Double calculateBMI(Double weight, Double height) {
+        return weight / (height * height);
+    }
+}
+```
 
-SELECT MIN(column_name)
-FROM table_name
-WHERE condition;
+```xml
+<web-app ...>
 
-SELECT COUNT(column_name)
-FROM table_name
-WHERE condition;
+    <servlet>
+       <servlet-name>FormServlet</servlet-name>
+       <servlet-class>com.root.FormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FormServlet</servlet-name>
+        <url-pattern>/calculateServlet</url-pattern>
+    </servlet-mapping>
 
-SELECT column1, column2, ...
-FROM table_name
-WHERE columnN LIKE pattern;
-
-SELECT * FROM Customers
-WHERE City LIKE 'ber%';
-
-SELECT column_name(s)
-FROM table_name
-WHERE column_name IN (value1, value2, ...);
-
-SELECT column_name(s)
-FROM table_name
-WHERE column_name BETWEEN value1 AND value2;
-
-SELECT column_name AS alias_name
-FROM table_name;
-
-SELECT Orders.OrderID, Customers.CustomerName, Orders.OrderDate
-FROM Orders
-INNER JOIN Customers ON Orders.CustomerID=Customers.CustomerID;
-
-SELECT column_name(s)
-FROM table1
-LEFT JOIN table2
-ON table1.column_name = table2.column_name;
-
-SELECT column_name(s)
-FROM table1
-RIGHT JOIN table2
-ON table1.column_name = table2.column_name;
-
-SELECT column_name(s)
-FROM table1
-FULL OUTER JOIN table2
-ON table1.column_name = table2.column_name
-WHERE condition;
-
-SELECT column_name(s) FROM table1
-UNION
-SELECT column_name(s) FROM table2;
-
-SELECT column_name(s)
-FROM table_name
-WHERE condition
-GROUP BY column_name(s)
-HAVING condition
-ORDER BY column_name(s);
-
-SELECT column_name(s)
-FROM table_name
-WHERE EXISTS
-(SELECT column_name FROM table_name WHERE condition);
-
-SELECT column_name(s)
-FROM table_name
-WHERE column_name operator ANY
-  (SELECT column_name
-  FROM table_name
-  WHERE condition);
-
-SELECT *
-INTO newtable [IN externaldb]
-FROM oldtable
-WHERE condition;
-
-INSERT INTO table2
-SELECT * FROM table1
-WHERE condition;
-
-CASE
-    WHEN condition1 THEN result1
-    WHEN condition2 THEN result2
-    WHEN conditionN THEN resultN
-    ELSE result
-END;
-
-SELECT ProductName, UnitPrice * (UnitsInStock + IFNULL(UnitsOnOrder, 0))
-FROM Products;
-SELECT ProductName, UnitPrice * (UnitsInStock + COALESCE(UnitsOnOrder, 0))
-FROM Products;
-
-CREATE PROCEDURE procedure_name
-AS
-sql_statement
-GO;
--> then ->
-EXEC procedure_name;
+</web-app>
+```
