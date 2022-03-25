@@ -451,6 +451,111 @@ JWTs use these claims to transfer:
 You can also add custom claims to external tokens or internal tokens. These are claims that you include in addition to the Backbase Platform claims. You can add a private claim to a custom application to include more information. For example, a mobileActive claim that adds more information about the user’s activity within a banking mobile app.
 
 
+#### Mandatory external JWT claims
+
+The following external JWT claims are mandatory:
+
+*   `iss` - issuer. This is the mapped user name from Authentication. You can override this name with `InternalJwtMapper.getUserName` (Authentication). The default is `bb`.
+    
+*   `sub` - subject. This is the principal that is the subject of the JWT.
+    
+*   `rol` - subject roles. This is the array of the mapped user grant authorities from `AbstractAuthenticationToken.getAuthorities()`.
+    
+*   `anexp` - account non expired. This is the mapped information from `UserDetails.isAccountNonExpired()`.
+    
+*   `anloc` - account non locked. This is mapped information from `UserDetails.isAccountNonLocked()`.
+    
+*   `cnexp` - credentials non expired. This is mapped information from `UserDetails.isCredentialsNonExpired()`.
+    
+*   `enbl` - enabled. This is mapped information from `UserDetails.isEnabled()`.
+    
+
+#### Optional external JWT claims
+
+The following external JWT claims are optional:
+
+*   `exp` - expiration time. This is the UTC time at which the token becomes invalid. The default is `300` seconds.
+    
+    `sso.jwt.external.expiration=300 (sec)` is the default property value used to set up expiration time of the token from the current time. This value is used in combination with `sso.jwt.external.renew=120 (sec)` property, which defines the time before expiration when token can be renewed. (In this example token will be automatically renewed if current time of the request is in between 120 sec before of the token expiration time).
+    
+*   `naf` - not after time. This is the UTC time after which this token can’t be used, because of its invalidation as maximum expiration time. **By default it’s defined as `1800` seconds**.
+    
+*   `jti` - JWT ID. This claim provides a unique identifier for the JWT. **By default it’s randomly generated hash value represented as String**.
+    
+*   `grp` - role groups. This is an array of groups for roles assigned to the user.
+    
+*   `tid` - tenant ID. This is used to map the user tenant identifier. It can be mapped with `ExternalJwtTenantMapper.tenantId()`. For more information, see [Configure multitenancy support in the Authentication Service](https://community.backbase.com/documentation/platform-services/latest/authentication_and_multi_tenancy_support).
+    
+*   `iat` - issued at time. This is the UTC time when token is created. At the moment current filter doesn’t use this information.
+    
+*   `nbf` - not before time. This is the UTC time before which this token can be used. At the moment current filter doesn’t use this information.
+    
+*   `aud` - audience. This claim identifies the recipients that the JWT is intended for. The current filter doesn’t use this information.
+    
+
+Use the following claims for custom filters. These claims are not used by the default filter implementation `ExternalJwtConsumerFilter`.
+
+*   Use `iat` to define the maximum token validity period for a moving time window.
+    
+*   Use  `nbf` to generate a token for future use.
+    
+*   Use `aud` to define the audience list for which this token is valid. You can then enable or disable some audiences.
+    
+
+As the HTTP header is used to obtain the external token, ensure that you balance the amount of information you add to the token with the HTTP header size. App servers have a default limitation for HTTP header size. The default size depends on the app server implementation, but in most cases you can change this value.
+
+For example, if you’re using Tomcat, the maximum size of the request and response HTTP headers is set to 4096 bytes (4 KB) by default. 
+
+
+#### Mandatory internal JWT claims
+
+The following internal JWT claims are mandatory:
+
+*   `iss` - issuer. This is the mapped user name from Authentication. You can override this name with `InternalJwtMapper.getUserName` (Authentication). The default is `bb`.
+    
+*   `sub` - subject. This is the principal that is the subject of the JWT.
+    
+*   `rol` - subject roles. This is the array of the mapped user grant authorities from `AbstractAuthenticationToken.getAuthorities()`.
+    
+*   `anexp` - account non expired. This is the mapped information from `UserDetails.isAccountNonExpired()`.
+    
+*   `anloc` - account non locked. This is mapped information from `UserDetails.isAccountNonLocked()`.
+    
+*   `cnexp` - credentials non expired. This is mapped information from `UserDetails.isCredentialsNonExpired()`.
+    
+*   `enbl` - enabled. This is mapped information from `UserDetails.isEnabled()`.
+    
+*   `trans` - transport method. This is used to map the Authentication initial transport method. That is, cookie or HTTP header.
+    
+
+#### Optional internal JWT claims
+
+The following internal JWT claims are optional:
+
+*   `jti` - JWT ID. This claim provides a unique identifier for the JWT. By default, it is a randomly generated hash value represented as string.
+    
+*   `grp` - role groups. This is an array of groups for roles assigned to the user.
+    
+*   `tid` - tenant ID. This is used to map a user’s tenant identifier for multitenancy.
+    
+*   `crlid` - correlation ID. This is used to map a specific identifier and track where the initial request originated, and which services process the request.
+    
+
+In addition, if the BAS Token Converter is configured to propagate user IDs from Users, it adds the following claims to the internal token during token conversion:
+
+*   `inuid` - internal user ID. This is the Backbase user ID obtained from Users.
+    
+*   `leid` - legal entity ID. This is the user’s legal entity ID obtained from Access Control.
+    
+*   `idp.sub` - subject of the external token. This is the external user ID obtained from the `sub` claim in the external token.
+    
+*   `idp.iss` - issuer of the external token. This is the issuer ID obtained from the `iss` claim in the external token.
+    
+
+As the HTTP header is used to obtain the internal token, ensure that you balance the amount of information you add to the token with the HTTP header size. App servers have a default limitation for HTTP header size. The default size depends on the app server implementation, but in most cases you can change this value.
+
+For example, if you’re using Tomcat, the maximum size of the request and response HTTP headers is set to 4096 bytes (4 KB) by default.
+
 
 Custom JWT Mappers
 ==================
