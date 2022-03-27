@@ -205,8 +205,10 @@ To manage library dependencies in the behavior extension, take the following ste
 
 Create a class to hold the entry point of your behavior extension and annotate it with `@BehaviorExtension`. For example:
 
-    @BehaviorExtension(name="my-extension-name”, routeId = TargetServiceRoute.ROUTE_ID)
-    public class MyExtensionClass { }
+```java
+@BehaviorExtension(name="my-extension-name”, routeId = TargetServiceRoute.ROUTE_ID)
+public class MyExtensionClass { }
+```
 
 The `name` parameter of the `@BehaviorExtension` annotation defines a key which can be used to enable or disable the extension using configuration properties. The `routeId` parameter defines the target service’s business process that you wish to extend.
 
@@ -218,15 +220,17 @@ You can define code in a `@BehaviorExtension` class to execute before the out-of
 
 For example:
 
-    @PreHook
-    public void doSomethingBefore(InternalRequest<PostRequestBody> internalRequest) {    
-      // custom code here
-    }
+```java
+@PreHook
+public void doSomethingBefore(InternalRequest<PostRequestBody> internalRequest) {    
+  // custom code here
+}
 
-    @PostHook
-    public void doSomethingAfter(InternalRequest<PostResponseBody> internalRequest) {    
-      // custom code here
-    }
+@PostHook
+public void doSomethingAfter(InternalRequest<PostResponseBody> internalRequest) {    
+  // custom code here
+}
+```
 
 The methods will be invoked by Camel, so may have any of the usual parameters acceptable in a Camel route. For example, the Camel exchange’s input body type, parameters annotated with `@Header`, or the Camel `Exchange` object itself. Consult the documentation for the target extension point to see the available parameters and types.
 
@@ -265,31 +269,37 @@ To create a Service SDK docker image with the extension library included, follow
 
     1.  Set the parent to be `backbase-service-extension-starter-parent`:
 
-            <parent>
-              <groupId>com.backbase.buildingblocks</groupId>
-              <artifactId>backbase-service-extension-starter-parent</artifactId>
-              <version>11.3.0</version>
-            </parent>
+        ```xml
+        <parent>
+          <groupId>com.backbase.buildingblocks</groupId>
+          <artifactId>backbase-service-extension-starter-parent</artifactId>
+          <version>11.3.0</version>
+        </parent>
+        ```
 
         This is set by default when you generate your extension project with the `service-extension-archetype`.
 
-        Note
-
-        If it’s not possible to set `backbase-service-extension-starter-parent` as the parent, see [Configure a Jib plugin to create a new image](https://community.backbase.com/documentation/ServiceSDK/11-3-0/extend_service_behavior#configure_jib_plugin_new_image).
+        > Note:
+        > 
+        > If it’s not possible to set `backbase-service-extension-starter-parent` as the parent, see [Configure a Jib plugin to create a new image](https://community.backbase.com/documentation/ServiceSDK/11-3-0/extend_service_behavior#configure_jib_plugin_new_image).
 
     2.  Configure the docker values in the POM file `<properties>`:
 
         To specify the base image of the extensible service, set the following properties:
 
-            <!-- base image -->
-            <docker.base.tag>1.0.0</docker.base.tag>
-            <docker.base.name>repo.backbase.com/backbase-docker-releases/example-extensible-presentation-service</docker.base.name>
+        ```xml
+        <!-- base image -->
+        <docker.base.tag>1.0.0</docker.base.tag>
+        <docker.base.name>repo.backbase.com/backbase-docker-releases/example-extensible-presentation-service</docker.base.name>
+        ```
 
         To specify the name of the new image that’s created with the extension included, set the following properties:
 
-            <!-- docker configuration -->
-            <docker.image.name>my.docker.repo/staging/extended-banking-service</docker.image.name>
-            <docker.image.tag>1.0.0</docker.image.tag>
+        ```xml
+        <!-- docker configuration -->
+        <docker.image.name>my.docker.repo/staging/extended-banking-service</docker.image.name>
+        <docker.image.tag>1.0.0</docker.image.tag>
+        ```
 
 
 2.  **Generate the image**
@@ -309,53 +319,55 @@ To create a Service SDK docker image with the extension library included, follow
 
 If your project can’t use the `backbase-service-extension-starter-parent` as a parent, use the following Jib plugin configuration to create a new image:
 
-    <profile>
-      <id>docker-image</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.google.cloud.tools</groupId>
-            <artifactId>jib-maven-plugin</artifactId>
-            <version>2.5.2</version>
-            <dependencies>
-              <dependency>
-                <groupId>com.backbase.buildingblocks</groupId>
-                <artifactId>jib-extras-extension</artifactId>
-                <version>11.3.0</version>
-              </dependency>
-            </dependencies>
-            <configuration>
-              <pluginExtensions>
-                <pluginExtension>
-                  <implementation>com.backbase.buildingblocks.maven.jib.JibExtrasExtension</implementation>
-                </pluginExtension>
-              </pluginExtensions>
-              <from>
-                <image>repo.backbase.com/backbase-docker-releases/example-extensible-presentation-service:1.0.0</image>
-              </from>
-              <to>
-                <image>my.docker.repo/staging/${project.artifactId}:${project.version}</image>
-              </to>
-              <container>
-                <appRoot>/app/extras</appRoot>
-                <entrypoint>INHERIT</entrypoint>
-                <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-              </container>
-              <containerizingMode>packaged</containerizingMode>
-            </configuration>
-            <executions>
-              <execution>
-                <id>extension-image</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>build</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
+```xml
+<profile>
+  <id>docker-image</id>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>2.5.2</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.backbase.buildingblocks</groupId>
+            <artifactId>jib-extras-extension</artifactId>
+            <version>11.3.0</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <pluginExtensions>
+            <pluginExtension>
+              <implementation>com.backbase.buildingblocks.maven.jib.JibExtrasExtension</implementation>
+            </pluginExtension>
+          </pluginExtensions>
+          <from>
+            <image>repo.backbase.com/backbase-docker-releases/example-extensible-presentation-service:1.0.0</image>
+          </from>
+          <to>
+            <image>my.docker.repo/staging/${project.artifactId}:${project.version}</image>
+          </to>
+          <container>
+            <appRoot>/app/extras</appRoot>
+            <entrypoint>INHERIT</entrypoint>
+            <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+          </container>
+          <containerizingMode>packaged</containerizingMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>extension-image</id>
+            <phase>package</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</profile>
+```
 
 Access the HttpServletRequest in a behavior extension
 -----------------------------------------------------
@@ -366,65 +378,48 @@ For example, to get the value of a query parameter called `myQueryParameter` dur
 
 Using behavior extension annotations (Service SDK 6.0.0 or later)
 
-    @BehaviorExtension(name="my-extension-name”, routeId = TargetServiceRoute.ROUTE_ID)
-    public class MyExtensionClass {     
-      private final HttpServletRequest httpServletRequest;
+```java
+@BehaviorExtension(name="my-extension-name”, routeId = TargetServiceRoute.ROUTE_ID)
+public class MyExtensionClass {     
+  private final HttpServletRequest httpServletRequest;
 
-      @Autowired    
-      public MyExtensionClass(HttpServletRequest httpServletRequest) {
-        this.httpServletRequest = httpServletRequest;
-      }     
+  @Autowired    
+  public MyExtensionClass(HttpServletRequest httpServletRequest) {
+    this.httpServletRequest = httpServletRequest;
+  }     
 
-      @PostHook
-      public void myPostHook(Exchange exchange) {
-        String myQueryParameter = httpServletRequest.getParameter("myQueryParameter");        
-        // ...    
-      }
-    }
-
-Overriding the extensible RouteBuilder (Service SDK 5.13.0 or earlier)
-
-    @Component
-    @Primary
-    public class MyExtensionClass extends TargetServiceRoute {
-      private final HttpServletRequest httpServletRequest;     
-
-      @Autowired
-      public MyExtensionClass(HttpServletRequest httpServletRequest) {
-        this.httpServletRequest = httpServletRequest;
-      }
-
-      @Override
-      public void configurePostHook(RouteDefinition rd) throws Exception {
-        rd.process(exchange -> {
-          String myQueryParameter = httpServletRequest.getParameter("myQueryParameter");
-          // ...        
-        });
-      }
-    }
+  @PostHook
+  public void myPostHook(Exchange exchange) {
+    String myQueryParameter = httpServletRequest.getParameter("myQueryParameter");        
+    // ...    
+  }
+}
+```
 
 Multiple behavior extensions
 ----------------------------
 
 Any number of `@BehaviorExtension` classes may be provided for the same route ID. The order of execution can be controlled using Spring’s `@Order` annotation or by implementing Spring’s `Ordered` interface. For example, consider the following two extension classes which both provide a @PreHook method and target the same route ID:
 
-    @BehaviorExtension(name="my-extension-name”, routeId = TargetServiceRoute.ROUTE_ID)
-    @Order(1)
-    public class MyExtensionClass {
-      @PreHook
-      public void doSomething(Exchange exchange) {
-        // ...
-      }
-    }
+```java
+@BehaviorExtension(name="my-extension-name”, routeId = TargetServiceRoute.ROUTE_ID)
+@Order(1)
+public class MyExtensionClass {
+  @PreHook
+  public void doSomething(Exchange exchange) {
+    // ...
+  }
+}
 
-    @BehaviorExtension(name="another-extension-name”, routeId = TargetServiceRoute.ROUTE_ID)
-    @Order(2)
-    public class AnotherExtensionClass {
-      @PreHook
-      public void doSomething(Exchange exchange) {
-        // ...
-      }
-    }
+@BehaviorExtension(name="another-extension-name”, routeId = TargetServiceRoute.ROUTE_ID)
+@Order(2)
+public class AnotherExtensionClass {
+  @PreHook
+  public void doSomething(Exchange exchange) {
+    // ...
+  }
+}
+```
 
 Because of the values given in the `@Order` annotations, the `@PreHook` method in `MyExtensionClass` will be executed before the `@PreHook` method in `AnotherExtensionClass`.
 
@@ -448,35 +443,39 @@ If defining pre- and post-hook behavior as shown above is insufficient, you can 
 
 For example, you can extend the out-of-the-box `RouteBuilder` implementation, add the `@Primary` annotation, and override the `configure()` method to completely replace the route.
 
-    package com.backbase.extension.example;
+```java
+package com.backbase.extension.example;
 
-    @Component
-    @Primary
-    public class CustomExtendingRouteBuilder extends com.backbase.<extensible_service>.<extensible_route> {
-      @Override
-      public void configurePostHook(RouteDefinition rd) throws Exception {
-         super.configurePostHook(rd);
-         rd.to("direct:myposthookuri");
-      }
-    }
+@Component
+@Primary
+public class CustomExtendingRouteBuilder extends com.backbase.<extensible_service>.<extensible_route> {
+  @Override
+  public void configurePostHook(RouteDefinition rd) throws Exception {
+      super.configurePostHook(rd);
+      rd.to("direct:myposthookuri");
+  }
+}
+```
 
 You do not have to extend a route class to replace it. Instead, you can provide a new `ExtensibleRouteBuilder` implementation using the same route ID as the route you want to replace. Provided that the route IDs match, the `ExtensibleRouteBuilder` bean with the `@Primary` annotation is used.
 
-    @Component
-    @Primary
-    public class ExtendedRoute2 extends ExtensibleRouteBuilder {
-      public ExtendedRoute2() {
-        super(ExampleRoute.ROUTE_ID);
-      }
+```java
+@Component
+@Primary
+public class ExtendedRoute2 extends ExtensibleRouteBuilder {
+  public ExtendedRoute2() {
+    super(ExampleRoute.ROUTE_ID);
+  }
 
-      @Override
-      public void configure() throws Exception {
-         from(ExampleEndpointConstants.DIRECT_BUSINESS_HELLO)
-          .routeId(getRouteID())
-          .to(“direct:goodbyeRoute”)
-          .transform(simple("Goodbye ${in.body}. That’s all folks!"));
-      }
-    }
+  @Override
+  public void configure() throws Exception {
+      from(ExampleEndpointConstants.DIRECT_BUSINESS_HELLO)
+        .routeId(getRouteID())
+        .to(“direct:goodbyeRoute”)
+        .transform(simple("Goodbye ${in.body}. That’s all folks!"));
+  }
+}
+```
 
 Overriding the `configurePreHook` and `configurePostHook` methods of the original `ExtensibleRouteBuilder` implementation without calling the super methods, or providing a replacement `ExtensibleRouteBuilder` implementation that does not extend `SimpleExtensibleRouteBuilder`, will bypass the mechanism which delegates to annotation-driven behavior extensions.
 
@@ -499,26 +498,28 @@ To implement a model extension for a service, you load a YAML configuration defi
 
 These extensions fields are returned in the JSON response’s `additions` field. The following example shows a JSON response containing custom properties:
 
-    {
-      "name": "John Doe",
-      "category": "Employee",
-      "phoneNumber": "055512345678",
-      "emailId": "john@example.com",
-      "accounts": [{
-        "name": "Saving account",
-        "alias": "Savings",
-        "IBAN": "FI21 1234 5600 0007 85",
-        "bankName": "Test Bank",
-        "bankAddressLine1": "Jodenbreestraat 96",
-        "bankTown": "Amsterdam",
-        "bankPostCode": "1011NS",
-        "bankCountry": "NL"
-      }],
-      "additions": {
-        "favPokemon": "Picachu",
-        "rank": "2"
-      }
-    }
+```json
+{
+  "name": "John Doe",
+  "category": "Employee",
+  "phoneNumber": "055512345678",
+  "emailId": "john@example.com",
+  "accounts": [{
+    "name": "Saving account",
+    "alias": "Savings",
+    "IBAN": "FI21 1234 5600 0007 85",
+    "bankName": "Test Bank",
+    "bankAddressLine1": "Jodenbreestraat 96",
+    "bankTown": "Amsterdam",
+    "bankPostCode": "1011NS",
+    "bankCountry": "NL"
+  }],
+  "additions": {
+    "favPokemon": "Picachu",
+    "rank": "2"
+  }
+}
+```
 
 For information on how to configure the maximum number of additions in a group, and the maximum length of an addition’s key and value, see [Data model extensions](https://community.backbase.com/documentation/ServiceSDK/11-3-0/service_sdk_ref_model_extensions).
 
@@ -534,28 +535,30 @@ To create a model extension:
 
 2.  Define your custom properties in the service’s YAML configuration file. For example, the following configuration defines a `pokemon-data` set of extension properties and associates it with a service’s specification and persistence classes:
 
-        backbase:
-          api:
-            extensions:
-              classes:
-                com.backbase.presentation.contact.rest.spec.v2.contacts.ContactsPostRequestBody: pokemon-data
-                com.backbase.presentation.contact.rest.spec.v2.contacts.ContactPutRequestBody: pokemon-data
-                com.backbase.presentation.contact.rest.spec.v2.contacts.AccountInformation: pokemon-data
-                com.backbase.dbs.party.persistence.spec.v2.parties.PartyDto: pokemon-data
-                com.backbase.dbs.party.persistence.spec.v2.parties.AccountInformation: pokemon-data
-                com.backbase.dbs.contactmanager.party.persistence.Party: pokemon-data
-                com.backbase.dbs.contactmanager.party.persistence.AccountInformation: pokemon-data
-              property-sets:
-                pokemon-data:
-                  properties:
-                  - property-name: favPokemon
-                    security:
-                    - confidential
-                    type: string
-                  - property-name: rank
-                    security:
-                    - confidential
-                    type: number
+    ```yaml
+    backbase:
+      api:
+        extensions:
+          classes:
+            com.backbase.presentation.contact.rest.spec.v2.contacts.ContactsPostRequestBody: pokemon-data
+            com.backbase.presentation.contact.rest.spec.v2.contacts.ContactPutRequestBody: pokemon-data
+            com.backbase.presentation.contact.rest.spec.v2.contacts.AccountInformation: pokemon-data
+            com.backbase.dbs.party.persistence.spec.v2.parties.PartyDto: pokemon-data
+            com.backbase.dbs.party.persistence.spec.v2.parties.AccountInformation: pokemon-data
+            com.backbase.dbs.contactmanager.party.persistence.Party: pokemon-data
+            com.backbase.dbs.contactmanager.party.persistence.AccountInformation: pokemon-data
+          property-sets:
+            pokemon-data:
+              properties:
+              - property-name: favPokemon
+                security:
+                - confidential
+                type: string
+              - property-name: rank
+                security:
+                - confidential
+                type: number
+    ```
 
 3.  Start the service with the following parameter:
 

@@ -12,6 +12,7 @@
 
 > Create Legal Entity under another
 
+    // Note: KPMG is a group in this scenario
     {
       "externalId": "KPMG",
       "name": "KPMG",
@@ -24,9 +25,9 @@
     POST {{entitlementsUrl}}user-manager/integration-api/v2/users
 
     {
-    "externalId": "Jonathan",
-    "legalEntityExternalId": "KPMG",
-    "fullName": "Jonathan"
+      "externalId": "Jonathan",
+      "legalEntityExternalId": "KPMG",
+      "fullName": "Jonathan"
     }
 
 > Set Service Agreement External Id
@@ -167,7 +168,7 @@
 
 > Login and Set Context
 
-    {{url}}auth/login
+    POST {{url}}auth/login
 
     {
          "username": "Peter",
@@ -175,7 +176,7 @@
     }
 
 
-    {{url}}access-control/client-api/v2/accessgroups/usercontext?_csrf={{xsrf-token}}
+    POST {{url}}access-control/client-api/v2/accessgroups/usercontext?_csrf={{xsrf-token}}
 
     {
     	"serviceAgreementId": "{{msaIdForKPMG}}"

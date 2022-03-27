@@ -50,11 +50,20 @@ To use `auth-security-dbs-accesscontrol` to control user permissions:
 
         To use the annotation to check permissions, supply a function name, resource name and a privilege:
 
-            @PreAuthorize("checkPermission('[your_resource_name]', '[your_function_name]', {'[privilege]'})")
+        ```java
+        @PreAuthorize("checkPermission('[your_resource_name]', '[your_function_name]', {'[privilege]'})")
+        ```
 
         Add the @PreAuthorize annotation on your REST controller handler methods. For example:
 
-            @PreAuthorize("checkPermission('Payments', 'Domestic Payments', {'create'})")@RequestMapping(method = {RequestMethod.POST}, value = {""})@ResponseStatus(HttpStatus.CREATED)public void createPayment(@RequestBody @Valid CreatePaymentPostRequestBody payment){//TODO Implement method}
+        ```java
+        @PreAuthorize("checkPermission('Payments', 'Domestic Payments', {'create'})")
+        @RequestMapping(method = {RequestMethod.POST}, value = {""})
+        @ResponseStatus(HttpStatus.CREATED)
+        public void createPayment(@RequestBody @Valid CreatePaymentPostRequestBody payment){
+            //TODO Implement method
+        }
+        ```
 
         In this example, a check is made that the user making the request (as identified by the JWT token) has been assigned a function group with a `'create'` privilege for a `'Payments'` resource and `'Domestic Payments'` function.
 
@@ -68,27 +77,32 @@ To use `auth-security-dbs-accesscontrol` to control user permissions:
     1.  Check if the user has the specified privileges assigned:
 
         Make a request:
+
             GET /access-control/service-api/v2/accessgroups/users/permissions?userId=<Internal User ID>&serviceAgreementId=<Service agreement ID>&functionName=<Function Name>&resourceName=<Resource Name>&privileges=<Privilege>
 
-            Using the client included in the library:
-            <presentationAccessgroupUsersClient>.getUserPermissionCheck(permissionsQueryParameters);
+        Using the client included in the library:
+
+            presentationAccessgroupUsersClient.getUserPermissionCheck(permissionsQueryParameters);
 
     2.  Check the list of all privileges:
 
         Retrieve all privileges for a user under single service agreement for legal entity Backbase.
         Make a request:
+
             GET /access-control/service-api/v2/accessgroups/users/privileges?userId=&<Internal User ID>&serviceAgreementId=<Service agreement ID>&functionName=<Function Name>&resourceName=<Resource>
 
     3.  Get the list of arrangements with privileges:
 
         Retrieve a list of arrangements for a user called “Jonathan”. Make a request:
+
             GET /access-control/service-api/v2/accessgroups/users/privileges/arrangements?userId=<Internal User ID>&serviceAgreementId=<Service agreement ID>&functionName=<Function Name>&resourceName=<Resource Name>&privilegeName=<Privilege>
 
     4.  Check the permission for an arrangement:
 
         Check if a user in the service agreement has some permission over a specific arrangement.
         Make a request:
-            /access-control/service-api/v2/accessgroups/users/user-privileges/arrangements/<arrangement-internal\_id>?function=<Function Name>&resource=<Resource Name>&privilege=<Privilege>
+
+            GET /access-control/service-api/v2/accessgroups/users/user-privileges/arrangements/<arrangement-internal\_id>?function=<Function Name>&resource=<Resource Name>&privilege=<Privilege>
 
     5.  Check if the user has permissions to access users or arrangements that belong to the list of legal entities.
 
@@ -118,42 +132,44 @@ To use `auth-security-dbs-accesscontrol` to control user permissions:
 
     *   MySQL:      
 
-            INSERT INTO `business_function`
-            (
-              `id`,
-              `function_code`,
-              `function_name`,
-              `resource_code`,
-              `resource_name`
-            )
-            VALUES
-              ('1014', 'manage.shadow.limits', 'Manage Shadow Limits', 'limits', 'Limits');
+        ```sql
+        INSERT INTO `business_function`
+        (
+        `id`,
+        `function_code`,
+        `function_name`,
+        `resource_code`,
+        `resource_name`
+        )
+        VALUES
+        ('1014', 'manage.shadow.limits', 'Manage Shadow Limits', 'limits', 'Limits');
 
-            INSERT INTO `applicable_function_privilege`
-            (
-              `id`,
-              `business_function_name`,
-              `function_resource_name`,
-              `privilege_name`,
-              `supports_limit`,
-              `business_function_id`,
-              `privilege_id`
-            )
-            VALUES
-              ('33', 'Manage Shadow Limits', 'Limits', 'view', '0', '1014', '2'),
-              ('34', 'Manage Shadow Limits', 'Limits', 'create', '0', '1014', '3'),
-              ('35', 'Manage Shadow Limits', 'Limits', 'edit', '0', '1014', '4'),
-              ('36', 'Manage Shadow Limits', 'Limits', 'delete', '0', '1014', '5');
+        INSERT INTO `applicable_function_privilege`
+        (
+        `id`,
+        `business_function_name`,
+        `function_resource_name`,
+        `privilege_name`,
+        `supports_limit`,
+        `business_function_id`,
+        `privilege_id`
+        )
+        VALUES
+        ('33', 'Manage Shadow Limits', 'Limits', 'view', '0', '1014', '2'),
+        ('34', 'Manage Shadow Limits', 'Limits', 'create', '0', '1014', '3'),
+        ('35', 'Manage Shadow Limits', 'Limits', 'edit', '0', '1014', '4'),
+        ('36', 'Manage Shadow Limits', 'Limits', 'delete', '0', '1014', '5');
 
-            INSERT INTO `assignable_permission_set_item`(
-                assignable_permission_set_id,
-                function_privilege_id
-            )
-            VALUES
-                (1, '33'),
-                (1, '34'),
-                (1, '35'),
-                (1, '36');
+        INSERT INTO `assignable_permission_set_item`(
+            assignable_permission_set_id,
+            function_privilege_id
+        )
+        VALUES
+            (1, '33'),
+            (1, '34'),
+            (1, '35'),
+            (1, '36');
+        ```
 
         a.  When you insert the `applicable_function_privilege`, the value of `privilege_id` should be the `id` from the privilege table. The values are: 2- view, 3 - create, 4 - edit, 5- delete, 6- approve.
 

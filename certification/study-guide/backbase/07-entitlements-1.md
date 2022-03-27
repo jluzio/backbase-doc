@@ -279,6 +279,7 @@ Limits entities
 ---------------
 
 Using the Entitlements Widget Collection widgets or implementing API requests, you can set up limits on the following entities:
+
 **Global limits**
 - Global user
 - Global legal entity
