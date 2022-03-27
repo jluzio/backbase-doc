@@ -5,6 +5,7 @@
 ### ExternalJwtConsumer
 ```java
 package com.backbase.buildingblocks.jwt.external;
+
 public interface ExternalJwtConsumer {
   ExternalJwt parseToken(String token) throws ExternalJwtException, JsonWebTokenException;
 }

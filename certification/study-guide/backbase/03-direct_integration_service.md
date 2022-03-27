@@ -21,6 +21,7 @@ Integration services:
 ## Implement
 
 * Generate the specification
+
       mvn archetype:generate \
        -DarchetypeArtifactId=raml-specifications-archetype \
        -DarchetypeGroupId=com.backbase.archetype \
@@ -30,6 +31,7 @@ Integration services:
 
 
 * Define the specification content
+
       #%RAML 1.0
       ---
       title: Locations
@@ -51,6 +53,7 @@ Integration services:
 
 
 * Generate the service
+
       mvn archetype:generate \
           -DarchetypeArtifactId=core-service-archetype \
           -DarchetypeGroupId=com.backbase.archetype \
@@ -62,6 +65,8 @@ Integration services:
 * Include other SSDK libraries or other specifications if necessary        
 
 * Create the REST controller implementing the API
-@RestController
-public class AtmLocationsController implements LocationsApi {
-}
+  ```java
+  @RestController
+  public class AtmLocationsController implements LocationsApi {
+  }
+  ```

@@ -27,23 +27,31 @@ The service-sdk-starter-logging logging starter library provides the following f
 - Log injection mitigation
 - Logging for HTTP requests and responses
 
-Logging profiles
+### Logging profiles
 - By default, the standard Spring Boot log format is used. For example:
+```log
 2019-04-24 11:06:29.506  INFO [test-wallet-presentation-service,2fdf0cf5627e3bdf,0cc38cfd504a2e5d,false] 20559 --- [nio-9921-exec-4] c.b.b.t.serviceapi.ServiceApiController  : Received create payment card request for card with id be7a257c-9918-45a7-89cb-ab94419fdd16
+```
 
 - json-logging: formats log messages as JSON. For example:
+```json
 {"@timestamp":"2019-04-24T11:12:28.098+01:00","@version":"1","message":"Received create payment card request for card with id b24bec96-fe67-4a47-963e-d81af722811d","logger_name":"com.backbase.buildingblocks.test.serviceapi.ServiceApiController","thread_name":"http-nio-9921-exec-4","level":"INFO","level_value":20000,"traceId":"7f1e8247385d6c9f","spanId":"a411dcb32193989d","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"a411dcb32193989d","X-B3-ParentSpanId":"7f1e8247385d6c9f","X-B3-TraceId":"7f1e8247385d6c9f","parentId":"7f1e8247385d6c9f"}
 
+```
 - legacy-logging: formats log messages using the legacy Service SDK default pattern. For example:
+```log
 11:17:04.510 [] [test-wallet-presentation-service] [http-nio-9921-exec-3]  INFO [test-wallet-presentation-service,bdd0747a22d73cb7,47bf946f52990fb9,false] c.b.b.t.s.ServiceApiController - Received create payment card request for card with id a43518f4-3301-43d6-8bab-7ed873200d5e
+```
 
-Log injection mitigation
+### Log injection mitigation
 To mitigate log injection, service-sdk-starter-logging replaces "\n" with "\n+[ " in the log messages. This distinguishes multiple lines logged from single messages.
 
-Logging for HTTP requests and responses
+### Logging for HTTP requests and responses
 To support the debugging of HTTP requests and responses, service-sdk-starter-logging enables CommonsRequestLoggingFilter by default.
 To view log statements when debugging HTTP communications, set the following property:
+```conf
 logging.level.org.springframework.web.filter.CommonsRequestLoggingFilter=DEBUG
+```
 
 
 ## Starters

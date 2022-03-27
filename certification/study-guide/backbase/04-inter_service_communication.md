@@ -77,7 +77,9 @@ When using Service SDK generated HTTP client services, the `InternalRequest` fie
 
 *   Use the `getUserTokenClaim()` method to obtain a single claim:
 
-        @Autowired SecurityContextUtil util;...String said = util.getUserTokenClaim("said", String.class)
+        @Autowired SecurityContextUtil util;
+        ...
+        String said = util.getUserTokenClaim("said", String.class)
 
 
 `SecurityContextUtil` derives the correct source of the originating user’s JWT:
@@ -88,6 +90,58 @@ When using Service SDK generated HTTP client services, the `InternalRequest` fie
 
 
 You can use `SecurityContextUtil` on a service’s request processing thread to extract JWT claims. However, best practice is that service-apis declare required user details as request parameters in their API specification.
+
+## client-api / service-api headers example
+
+Example for calling a client-api that calls a service-api
+> Note: the values from the initial internal token are passed using `x-cxt-*`, with `x-cxt-user-token` being the authorization from the first request.
+
+### client-api
+```java
+"x-b3-parentspanid" -> "0337ede747d8740b"
+"content-length" -> "0"
+"cookie" -> "XSRF-TOKEN=07d1c5ff-144a-4240-a447-cbba4c969a45"
+"x-forwarded-proto" -> "http"
+"postman-token" -> "3830d1c2-af76-4f7c-a31a-cfcc428c1d17"
+"x-b3-sampled" -> "1"
+"x-forwarded-port" -> "7777"
+"x-forwarded-for" -> "0:0:0:0:0:0:0:1"
+"forwarded" -> "proto=http;host="localhost:7777";for="0:0:0:0:0:0:0:1:52747""
+"accept" -> "*/*"
+"authorization" -> "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJQZXRlciIsInJvbCI6WyJST0xFX2dyb3VwX3VzZXIoVVNFUikiLCJST0xFX1VTRVIiXSwiY2xpZW50X2lkIjoiVG9rZW4tY29udmVydGVyIiwibmFmIjoxNjQ4NDc5MTgzLCJpZHAiOnsic3ViIjoiUGV0ZXIifSwiY25leHAiOnRydWUsInNjb3BlIjpbXSwiYW5sb2MiOnRydWUsImFuZXhwIjp0cnVlLCJleHAiOjE2NDgzOTYzODMsImVuYmwiOnRydWUsImlhdCI6MTY0ODM5Mjc4MywianRpIjoiNTk0ODZmOGYtYzc2YS00YTA0LThhMTEtNDU2MTlkNzFlOGI5IiwidHJhbnMiOiJoZWFkZXIifQ.Cm9sKmyBpmU3GfC4mi74njE_56Y_lV2cxphVOu5ml2Y"
+"x-forwarded-host" -> "localhost:7777"
+"x-b3-traceid" -> "0337ede747d8740b"
+"x-b3-spanid" -> "ec9d2dc4c559815f"
+"x-forwarded-prefix" -> "/api/exchange-rate-service"
+"host" -> "host.docker.internal:9915"
+"accept-encoding" -> "gzip, deflate, br"
+"user-agent" -> "PostmanRuntime/7.29.0"
+```
+
+### service-api
+```java
+"x-b3-parentspanid" -> "ec9d2dc4c559815f"
+"postman-token" -> "3830d1c2-af76-4f7c-a31a-cfcc428c1d17"
+"x-b3-sampled" -> "1"
+"x-cxt-channelid" -> "channelId"
+"x-forwarded-for" -> "0:0:0:0:0:0:0:1"
+"x-cxt-remote-user" -> "Peter"
+"x-cxt-requestuuid" -> "31ff6e0f-f364-4f6b-8d7c-13665d017368"
+"forwarded" -> "proto=http;host="localhost:7777";for="0:0:0:0:0:0:0:1:52747""
+"accept" -> "application/json, application/*+json"
+"authorization" -> "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYi1jbGllbnQiLCJhdWQiOlsiYmItb2F1dGgiXSwic2NvcGUiOlsiYXBpOnNlcnZpY2UiXSwiaXNzIjoidG9rZW4tY29udmVydGVyIiwiZXhwIjoxNjQ4MzkzMzcwLCJqdGkiOiI2NjM2MGQyMi03ZWE3LTQ5M2EtOTQ1Ny0xODgxZGNmNjNmMDYiLCJjbGllbnRfaWQiOiJiYi1jbGllbnQifQ.ZSC3RhJ6l1P4Qn-jFHWVTjEA5f814r7JYIq3Lf745gk"
+"x-cxt-requesttime" -> "1648393327"
+"x-cxt-authstatus" -> "DefaultAuthStatus{authLevel=bb-auth-rejected, message='Default auth level: Rejected'}"
+"x-cxt-useragent" -> "PostmanRuntime/7.29.0"
+"x-b3-traceid" -> "0337ede747d8740b"
+"x-b3-spanid" -> "dc3145235e34c1c8"
+"host" -> "host.docker.internal:9916"
+"content-type" -> "application/json"
+"x-cxt-user-token" -> "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJQZXRlciIsInJvbCI6WyJST0xFX2dyb3VwX3VzZXIoVVNFUikiLCJST0xFX1VTRVIiXSwiY2xpZW50X2lkIjoiVG9rZW4tY29udmVydGVyIiwibmFmIjoxNjQ4NDc5MTgzLCJpZHAiOnsic3ViIjoiUGV0ZXIifSwiY25leHAiOnRydWUsInNjb3BlIjpbXSwiYW5sb2MiOnRydWUsImFuZXhwIjp0cnVlLCJleHAiOjE2NDgzOTYzODMsImVuYmwiOnRydWUsImlhdCI6MTY0ODM5Mjc4MywianRpIjoiNTk0ODZmOGYtYzc2YS00YTA0LThhMTEtNDU2MTlkNzFlOGI5IiwidHJhbnMiOiJoZWFkZXIifQ.Cm9sKmyBpmU3GfC4mi74njE_56Y_lV2cxphVOu5ml2Y"
+"connection" -> "Keep-Alive"
+"accept-encoding" -> "gzip,deflate"
+"user-agent" -> "Apache-HttpClient/4.5.12 (Java/11.0.12)"
+```
 
 Multi-tenancy support
 ---------------------
@@ -173,3 +227,16 @@ Rules:
 - if called by clients through the Edge service -> client-api
 - if both -> service-api & client-api
 - if external client: integration-api
+
+## Token converter call example
+```log
+2022-03-27 17:08:33.200 DEBUG [token-converter,945a40584c56c142,7c59bb9d8edec295,true] 13764 --- [nio-8080-exec-5] o.s.w.f.CommonsRequestLoggingFilter      : Before request [GET /bb-au
+thentication-token-converter-service/convert, client=127.0.0.1, user=Peter, headers=[host:"localhost:8080", authorization:"Bearer eyJraWQiOiJNYmV1VmVVWlhVT2FJcDgwYmx1XC9sanFOQjNKZE9aSD
+gxQ3JGU0tpMmVcL2M9IiwiY3R5IjoiSldUIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImFsZyI6ImRpciJ9..SjDuaohCdBJKPo5vquJwqg.eJEpRUP5uPGk3jzMDXu_orzTXdwMGiqjhX7mxYLp18VDl70B78y5MnlDKEKmDHRiu3wzGDxscKzOa
+jnh6s69Q5KH6UsAMUYBlmOfdwqbRKgJFDvpNhW412qLLp_yZ9q_Q7BDIxR61rQdTiOSN1hapOG706XonUwS1yx_T96fVyaVpAriyvZFS5e97V9A-W3iFQ52I4prVbpCNgFk39MXBB2Q8xgCoZJDZh8pxhuIObt9hCmQo_8-4r8iy26HIcfaxHOPl
+zZ0hvRrPZ9bWtjt9Kx4uY9LvargpOED0b83ntd7bEzHJmpQzhK20jw9Rjmy-A6jeiwXStXbdzzL4tSuc-v7mFd-ibUOEck0EClSmSUtmP4_5WyDlXS-XV13Pu6IHn-eM7dWFpwqFYuD1ELtT2E7p8fRwgH-ZdY-SDtmqS25la39tlnY547MpryQw
+rm7H4K0YdIpPNr2ghydo0qieuqHtSdJ7sGPxuf5J5Lcn53VLRi_K2IUJSeUU-mOnLU2wEf3RAcSkPIQ4h6JkKReFL_gYpd0k8PFdjORZO4erWI.iJy1jB1SXe9LAL82fqUGNg", user-agent:"PostmanRuntime/7.29.0", accept:"*/*"
+, postman-token:"d5ff8e68-a64b-4b54-8290-a5a12c31a66e", accept-encoding:"gzip, deflate, br", connection:"keep-alive", cookie:"XSRF-TOKEN=07d1c5ff-144a-4240-a447-cbba4c969a45", bb_auth:
+"true", x-original-uri:"http://localhost:7777/api/exchange-rate-service/client-api/v1/exchange/fee", x-b3-traceid:"945a40584c56c142", x-b3-spanid:"7c59bb9d8edec295", x-b3-parentspanid:"945a40584c56c142", x-b3-sampled:"1"]]
+
+```

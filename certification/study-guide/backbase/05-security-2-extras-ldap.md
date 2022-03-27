@@ -50,15 +50,14 @@ The ADD operation inserts a new entry into the directory-server database. If the
 *   LDAP-compliant servers will ensure that the distinguished name and all attributes conform to naming standards.
 *   The entry to be added must not exist, and the immediate superior must exist.
 
-
-    dn: uid=user,ou=people,dc=example,dc=com
-    changetype: add
-    objectClass:top
-    objectClass:person
-    uid: user
-    sn: last-name
-    cn: common-name
-    userPassword: password
+        dn: uid=user,ou=people,dc=example,dc=com
+        changetype: add
+        objectClass:top
+        objectClass:person
+        uid: user
+        sn: last-name
+        cn: common-name
+        userPassword: password
 
 In the above example, `uid=user,ou=people,dc=example,dc=com` must not exist, and `ou=people,dc=example,dc=com` must exist.
 
@@ -80,31 +79,31 @@ To delete an entry, an LDAP client transmits a properly formed delete request to
 
 The Search operation is used to both search for and read entries. Its parameters are:
 
-###### baseObject
+#### baseObject
 
 The name of the base object entry (or possibly the root) relative to which the search is to be performed.
 
-###### scope
+#### scope
 
 What elements below the baseObject to search. This can be `BaseObject` (search just the named entry, typically used to read one entry), `singleLevel` (entries immediately below the base DN), or `wholeSubtree` (the entire subtree starting at the base DN).
 
-###### filter
+#### filter
 
 Criteria to use in selecting elements within scope. For example, the filter `(&(objectClass=person)(|(givenName=John)(mail=john*)))` will select "persons" (elements of objectClass `person`) where the matching rules for `givenName` and `mail` determine whether the values for those attributes match the filter assertion. Note that a common misconception is that LDAP data is case-sensitive, whereas in fact matching rules and ordering rules determine matching, comparisons, and relative value relationships. If the example filters were required to match the case of the attribute value, an _extensible match filter_ must be used, for example, `(&(objectClass=person)(|(givenName:caseExactMatch:=John)(mail:caseExactSubstringsMatch:=john*)))`
 
-###### derefAliases
+#### derefAliases
 
 Whether and how to follow alias entries (entries that refer to other entries),
 
-###### attributes
+#### attributes
 
 Which attributes to return in result entries.
 
-###### sizeLimit, timeLimit
+#### sizeLimit, timeLimit
 
 Maximum number of entries to return, and maximum time to allow search to run. These values, however, cannot override any restrictions the server places on size limit and time limit.
 
-###### typesOnly
+#### typesOnly
 
 Return attribute types only, not attribute values.
 
@@ -124,11 +123,10 @@ The MODIFY operation requires that the distinguished name (DN) of the entry be s
 
 LDIF example of adding a value to an attribute:
 
-dn: dc=example,dc=com
-changetype: modify
-add: cn
-cn: the-new-cn-value-to-be-added
--
+    dn: dc=example,dc=com
+    changetype: modify
+    add: cn
+    cn: the-new-cn-value-to-be-added
 
 To replace the value of an existing attribute, use the `replace` keyword. If the attribute is multi-valued, the client must specify the value of the attribute to update.
 

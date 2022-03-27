@@ -142,7 +142,87 @@ The action recipe implements the action recipe specification. It defines the fol
     *   The arrangement ID that the action recipe applies to.        
     *   The amount that triggers the action.
 
+#### Example
+```yaml
 
+- id: "1"
+  name: "New Transaction"
+  triggerWhen:
+    eventName: "com.backbase.transaction.persistence.event.spec.v1.TransactionsAddedEvent"
+  isUserDefined: true
+  type: "newTransaction"
+  category: "arrangementBased"
+  actionConfigurations:
+    - javaType: "com.backbase.dbs.actions.eventhandling.model.yaml.actionconfigurations.SmsActionConfigurationYaml"
+      actionId: "sms-action"
+      fallbackTemplate:
+        body: "#if(${transactions[0].creditDebitIndicator} == 'CRDT')\
+                  Received \
+                #{else}\
+                  Paid \
+                #end\
+              ${transactions[0].transactionAmountCurrency.currencyCode} $amountFormat.format(${transactions[0].transactionAmountCurrency.amount}, ${locale}) ${transactions[0].description}."
+      fallbackTemplateDigest:
+        body: "You have $BBEvents.size() transactions since $BBDate.format('HH:mm yyyy-MM-dd', $BBSinceDate, $locale, $BBTimeZone) on account $BBEvents.get(0).transactions.get(0).arrangementId"
+    - javaType: "com.backbase.dbs.actions.eventhandling.model.yaml.actionconfigurations.EmailActionConfigurationYaml"
+      actionId: "email-action"
+      fallbackTemplate:
+        title: "New transaction"
+        body: "#if(${transactions[0].creditDebitIndicator} == 'CRDT')\
+                  Received \
+                #{else}\
+                  Paid \
+                #end\
+              ${transactions[0].transactionAmountCurrency.currencyCode} $amountFormat.format(${transactions[0].transactionAmountCurrency.amount}, ${locale}) ${transactions[0].description}."
+      fallbackTemplateDigest:
+        title: "New transactions report"
+        body: "You have $BBEvents.size() transactions since $BBDate.format('HH:mm yyyy-MM-dd', $BBSinceDate, $locale, $BBTimeZone) on account $BBEvents.get(0).transactions.get(0).arrangementId"
+    - javaType: "com.backbase.dbs.actions.eventhandling.model.yaml.actionconfigurations.RoutableNotificationActionConfigurationYaml"
+      actionId: "notification-action"
+      severityLevel: "info"
+      route:
+        whereTo: "transaction-view"
+        dataTemplate: "{\"id\": \"${transactions[0].id}\", \"arrangementId\": \"${transactions[0].arrangementId}\"}"
+      digestRoute:
+        whereTo: "transaction-view"
+      origin: "Transaction"
+      fallbackTemplate:
+        title: "New transaction"
+        body: "&#128184; #if(${transactions[0].creditDebitIndicator} == 'CRDT')\
+                           Received \
+                         #{else}\
+                           Paid \
+                         #end\
+                      ${transactions[0].transactionAmountCurrency.currencyCode} $amountFormat.format(${transactions[0].transactionAmountCurrency.amount}, ${locale}) ${transactions[0].description}."
+      fallbackTemplateDigest:
+        title: "New transactions report"
+        body: "You have $BBEvents.size() transactions since $BBDate.format('HH:mm yyyy-MM-dd', $BBSinceDate, $locale, $BBTimeZone) on account $BBEvents.get(0).transactions.get(0).arrangementId"
+    - javaType: "com.backbase.dbs.actions.eventhandling.model.yaml.actionconfigurations.PushActionConfigurationYaml"
+      actionId: "push-action"
+      severityLevel: "info"
+      route:
+        whereTo: "transaction-view"
+        dataTemplate: "{\"id\": \"${transactions[0].id}\", \"arrangementId\": \"${transactions[0].arrangementId}\"}"
+      digestRoute:
+        whereTo: "transaction-view"
+      fallbackTemplate:
+        title: "New transaction"
+        body: "\uD83D\uDCB8 #if(${transactions[0].creditDebitIndicator} == 'CRDT')\
+                               Received \
+                             #{else}\
+                               Paid \
+                             #end\
+                           ${transactions[0].transactionAmountCurrency.currencyCode} $amountFormat.format(${transactions[0].transactionAmountCurrency.amount}, ${locale}) ${transactions[0].description}."
+      fallbackTemplateDigest:
+        title: "New transactions report"
+        body: "You have $BBEvents.size() transactions since $BBDate.format('HH:mm yyyy-MM-dd', $BBSinceDate, $locale, $BBTimeZone) on account $BBEvents.get(0).transactions.get(0).arrangementId"
+  digestEnabled: true
+  recipeDefaults:
+    amount: 0
+    actions:
+      - type: "notification"
+      - type: "push"
+```
 
 Audit
 ================
@@ -175,7 +255,46 @@ The Audit capability also enables other DBS and Identity Services capabilities t
 
 *   [Identity Services audited operations](https://community.backbase.com/documentation/identity/1.7.2/audited_operations_identity_services)
 
+```xml
+<dependency>
+  <groupId>com.backbase.dbs.audit</groupId>
+  <artifactId>audit-client</artifactId>
+  <version>?</version>
+</dependency>
+```
 
+```java
+@SpringBootApplication
+@EnableAuditClient
+public class TestApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(TestApplication.class, args);
+  }
+}
+
+@Component
+public class AuditClientAnnotationExample {
+
+  @AuditableOperation(
+    eventCategory = "Payments",
+    objectType = "SEPA Payment",
+    eventAction = AuditClientConstants.CREATE,
+    eventDescriberClass = CreateSepaPaymentAuditEventDescriber.class,
+    userIdRetrievalStrategyClass = CustomUserIdRetrievalStrategy.class
+  )
+  public CreatePaymentResponse createSepaPayment(User user, Payment payment, InternalRequest internalRequest) {
+      // ...
+  }
+
+  @Autowired
+  private AuditClient auditClient;
+
+  public void manualAuditExample() {
+    AuditMessage message = ...;
+    auditClient.audit(message, internalRequest.getInternalRequestContext());
+  }
+}
+```
 
 Contacts
 ===================
@@ -513,9 +632,7 @@ Backbase Platform always works in conjunction with a core banking system for the
 Users need the correct entitlement to be able to initiate a payment order. Payments depends on [Access Control](https://community.backbase.com/documentation/DBS/2-19-3/entitlements_understand) for this purpose. Optionally, Payments relies on [Limits](https://community.backbase.com/documentation/entitlements/2.19.3/limits_understand) and [Approvals](https://community.backbase.com/documentation/entitlements/2.19.3/approvals_understand), that are part of Entitlements Services, to restrict the maximum amount that users can pay and to have an approval workflow for business banking users. For more information, see [Payment approvals and limits](https://community.backbase.com/documentation/DBS/2-19-3/payments_understand#understand_paymentlimits).
 
 
-Note
-
-In addition to Payments, Backbase also offers [Bill Pay](https://community.backbase.com/documentation/DBS/2-19-3/billpay_understand) for bank users to pay their electronic or paper bills.
+> Note: In addition to Payments, Backbase also offers [Bill Pay](https://community.backbase.com/documentation/DBS/2-19-3/billpay_understand) for bank users to pay their electronic or paper bills.
 
 Initiate SEPA payment
 ---------------------
@@ -697,29 +814,24 @@ Payments works seamlessly with Entitlements Services to offer the following busi
     The ability to set up an approval workflow for payment orders. Bank customers with a specific entitlement either reject or approve a payment order, before Payments sends the payment order to the core banking system. Approvals integrates with Limits to offer approval limits, which is the total amount that a bank customer is allowed to approve in a specific time frame.
 
 
-![limits payments approvals](./images/puml/dbs/limits_payments_approvals.svg?ver=2.19.3)
+![limits payments approvals](https://community.backbase.com/documentation/DBS/2-19-3/images/puml/dbs/limits_payments_approvals.svg?ver=2.19.3)
 
 Payment transaction signing
 ---------------------------
 
 Payments works seamlessly with Identity Services to offer [Transaction Signing](https://community.backbase.com/documentation/identity/1.7.2/understand_transaction_signing).
 
-Note
-
-From the Identity Services documentation:
-
-To help protect transactions that are at higher risk of fraud or attack, banks can require customers to confirm the transactions by authenticating as an additional security step. For example, the bank can use Transaction Signing for online operations such as payments or changes to personal details. Transaction Signing increases the security of these operations as follows:
-
-*   The confirmation process creates a record of the transaction details and shows that the authenticated user authorized the operation before it was carried out. You can use the [audit logs](#confirmation_audited_operations) for the confirmation to support non-repudiation.
-
-*   The authentication process involves a signing operation that protects the authenticity and integrity of the transaction.
-
-    If you are using the Auth Server as your identity provider (IdP), the authentication process produces a signed JWT containing a reference to the confirmation record. In this case, the signature on the JWT verifies the transaction’s authenticity and integrity. Each time an operation needs to be confirmed, the user is challenged so that a new signed JWT is produced. An attacker cannot change the confirmation ID in the JWT without invalidating the signature, which prevents an attacker from changing the transaction details in the confirmation record. To ensure that transaction details your capability has stored haven’t been tampered with, make sure they match the transaction details in the confirmation record.
-
-
-Note
-
-In Transaction Signing, transactions do not refer exclusively to financial processes. You can set up confirmations for any kind of online operation, from making a payment to changing a passcode or removing a registered device.
+> Note: From the Identity Services documentation:
+> 
+> To help protect transactions that are at higher risk of fraud or attack, banks can require customers to confirm the transactions by authenticating as an additional security step. For example, the bank can use Transaction Signing for online operations such as payments or changes to personal details. Transaction Signing increases the security of these operations as follows:
+> 
+> *   The confirmation process creates a record of the transaction details and shows that the authenticated user authorized the operation before it was carried out. You can use the [audit logs](#confirmation_audited_operations) for the confirmation to support non-repudiation.
+> 
+> *   The authentication process involves a signing operation that protects the authenticity and integrity of the transaction.
+> 
+>     If you are using the Auth Server as your identity provider (IdP), the authentication process produces a signed JWT containing a reference to the confirmation record. In this case, the signature on the JWT verifies the transaction’s authenticity and integrity. Each time an operation needs to be confirmed, the user is challenged so that a new signed JWT is produced. An attacker cannot change the confirmation ID in the JWT without invalidating the signature, which prevents an attacker from changing the transaction details in the confirmation record. To ensure that transaction details your capability has stored haven’t been tampered with, make sure they match the transaction details in the confirmation record.
+> 
+>   > Note: In Transaction Signing, transactions do not refer exclusively to financial processes. You can set up confirmations for any kind of online operation, from making a payment to changing a passcode or removing a registered device.
 
 Payment states
 --------------
@@ -1023,11 +1135,11 @@ DBS persists user notes and allows to create, read, update, and delete user note
 Enrich transactions
 -------------------
 
-Note
-
-This section describes an add-on. You may use this add-on only if you have purchased an appropriate license for this add-on based on a signed Product Order Form.
-
-DBS integrates with third-party data enrichment providers to enrich the transaction data, for example by automatically adding a category to each new transaction. See [Enable transaction enrichment](https://community.backbase.com/documentation/DBS/2-19-3/enable_transaction_enrichment). DBS persists transaction categories and allows to change the category for a transaction.
+> Note
+> 
+> This section describes an add-on. You may use this add-on only if you have purchased an appropriate license for this add-on based on a signed Product Order Form.
+> 
+> DBS integrates with third-party data enrichment providers to enrich the transaction data, for example by automatically adding a category to each new transaction. See [Enable transaction enrichment](https://community.backbase.com/documentation/DBS/2-19-3/enable_transaction_enrichment). DBS persists transaction categories and allows to change the category for a transaction.
 
 Export transactions
 -------------------
