@@ -53,9 +53,9 @@ This section describes the try-with-resources statement, which is a try statemen
 Here's the bottom line guideline: If a client can reasonably be expected to recover from an exception, make it a checked exception. If a client cannot do anything to recover from the exception, make it an unchecked exception.
 
 ## Advantages of Exceptions
-Advantage 1: Separating Error-Handling Code from "Regular" Code
-Advantage 2: Propagating Errors Up the Call Stack
-Advantage 3: Grouping and Differentiating Error Types
+- Advantage 1: Separating Error-Handling Code from "Regular" Code
+- Advantage 2: Propagating Errors Up the Call Stack
+- Advantage 3: Grouping and Differentiating Error Types
 
 
 # Basic IO
