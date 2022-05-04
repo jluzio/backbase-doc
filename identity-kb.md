@@ -15,6 +15,22 @@ curl --location --request POST 'http://token-converter:8080/oauth/token' \
 
 Note: this request does not include user claims. Send them in request params, headers, body, etc.
 
+## Get Converted External Token
+### Refs
+- org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+- com.backbase.buildingblocks.jwt.internal.authentication.InternalJwtAuthentication
+
+### Steps
+- Debug App
+
+- Expression:
+> org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+- get serializedToken
+
+- Expression:
+> ((com.backbase.buildingblocks.jwt.internal.authentication.InternalJwtAuthentication) SecurityContextHolder.getContext().getAuthentication()).serializedToken
+
+
 ## Others (?)
 curl --location --request POST 'http://token-converter:8080/api/token-converter/oauth/token' \
 --header 'Content-Type: application/x-www-form-urlencoded' \
