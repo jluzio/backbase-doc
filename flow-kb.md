@@ -169,3 +169,13 @@ Components:
   - Single: (A)ny, (U)nique, (F)irst
   - Multiple: (R)ule order, (C)ollect
 
+# References
+## Expression Language
+com.backbase.flow.process.casedata.CasedataElResolver
+
+## Case queries
+- ProcessBean: com.backbase.flow.process.casedata.Casedata
+- Context: org.camunda.bpm.engine.impl.el.ProcessEngineElContext
+
+> e.g.: ${case.query("$.data.x")}:
+
